@@ -7,6 +7,7 @@ import com.example.demo_spring_boot.exception.AppException;
 import com.example.demo_spring_boot.exception.ErrorCode;
 import com.example.demo_spring_boot.mapper.ProductMapper;
 import com.example.demo_spring_boot.repository.ProductRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -57,6 +58,8 @@ public class ProductService {
     }
 
     public void delete(String id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
         productRepository.deleteById(id);
     }
 }

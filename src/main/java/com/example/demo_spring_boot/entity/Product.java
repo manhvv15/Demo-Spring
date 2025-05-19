@@ -1,6 +1,7 @@
 package com.example.demo_spring_boot.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +20,7 @@ public class Product {
     @Column(nullable = false)
     private String name;
 
+    @Size(max = 5, message = "Description cannot exceed 500 characters")
     private String description;
 
     private int quantity;

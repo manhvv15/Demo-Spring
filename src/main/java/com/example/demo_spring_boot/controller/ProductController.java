@@ -3,10 +3,9 @@ package com.example.demo_spring_boot.controller;
 import com.example.demo_spring_boot.dto.request.ProductRequest;
 import com.example.demo_spring_boot.dto.response.ProductResponse;
 import com.example.demo_spring_boot.entity.Product;
-import com.example.demo_spring_boot.repository.ProductRepository;
 import com.example.demo_spring_boot.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -27,7 +26,7 @@ public class ProductController {
     }
 
     @PostMapping
-    public ProductResponse create(@RequestBody ProductRequest product){
+    public ProductResponse create(@RequestBody @Valid ProductRequest product){
         return productService.create(product);
     }
     @PutMapping("/{id}")
