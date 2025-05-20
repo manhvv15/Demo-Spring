@@ -12,3 +12,8 @@ spring:
       ddl-auto: update
     show-sql: true
     database-platform: org.hibernate.dialect.MySQL8Dialect
+
+jwt:
+  signerKey: "U5IeSrMYMWbhjirxzw/OeuPWRgdWPSGueiQVa8Bn5+VSxDx0vDvH0l4fsl1p2EOk"
+  valid-duration: 1 #days
+  refreshable-duration: 2 #days

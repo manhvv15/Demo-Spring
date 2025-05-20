@@ -4,81 +4,89 @@ import com.example.demo_spring_boot.dto.response.ApiResponse;
 import jakarta.validation.ConstraintViolation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.security.PrivateKey;
 import java.util.Map;
 import java.util.Objects;
 
 @ControllerAdvice
 @Slf4j
-public class GlobalExceptionHandler {
-
+public class
+GlobalExceptionHandler {
     private static final String MIN_ATTRIBUTE = "min";
 
-    // ✅ Xử lý AppException với ErrorCode
-    @ExceptionHandler(value = AppException.class)
-    ResponseEntity<ApiResponse<?>> handleAppException(AppException exception) {
-        ErrorCode errorCode = exception.getErrorCode();
+//    @ExceptionHandler(value = Exception.class) //everywhere that has runtime exception
+//    ResponseEntity<ApiResponse> handlingRuntimeException(Exception exception){
+//        ApiResponse apiResponse = new ApiResponse();
+//        apiResponse.setCode(ErrorCode.UNCATEGORIED_EXCEPTION.getCode());
+//        apiResponse.setMessage(ErrorCode.UNCATEGORIED_EXCEPTION.getMessgae());
+//
+    ////        return ResponseEntity.badRequest().body(exception.getMessage());
+//        return ResponseEntity.badRequest().body(apiResponse);
+//    }
 
-        ApiResponse<?> apiResponse = ApiResponse.builder()
-                .code(errorCode.getCode())
-                .message(errorCode.getMessage())
-                .build();
-
-        return ResponseEntity.status(errorCode.getStatusCode())
-                .body(apiResponse);
-    }
-
-    // ✅ Xử lý lỗi validate DTO (e.g. @Valid)
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    ResponseEntity<ApiResponse<?>> handleValidationException(MethodArgumentNotValidException exception) {
+    ResponseEntity<ApiResponse> handlingValidationException(MethodArgumentNotValidException exception){
         String enumKey = exception.getFieldError().getDefaultMessage();
         ErrorCode errorCode = ErrorCode.KEY_INVALID;
         Map<String, Object> attributes = null;
 
-        try {
+        try{
             errorCode = ErrorCode.valueOf(enumKey);
 
-            var constraintViolation = exception.getBindingResult()
-                    .getAllErrors()
-                    .get(0)
-                    .unwrap(ConstraintViolation.class);
+            var contraintViolation = exception.getBindingResult()
+                    .getAllErrors().get(0).unwrap(ConstraintViolation.class);
 
-            attributes = constraintViolation.getConstraintDescriptor().getAttributes();
+            attributes = contraintViolation.getConstraintDescriptor().getAttributes();
 
-        } catch (IllegalArgumentException e) {
-            log.warn("Cannot parse error code: {}", enumKey);
+            log.info(attributes.toString());
+
+        }catch (IllegalArgumentException e){
+
         }
 
-        String message = Objects.nonNull(attributes)
-                ? mapAttribute(errorCode.getMessage(), attributes)
-                : errorCode.getMessage();
+        ApiResponse apiResponse = new ApiResponse();
+        apiResponse.setCode(errorCode.getCode());
+        apiResponse.setMessage(Objects.nonNull(attributes) ?
+                mapAttribute(errorCode.getMessage(), attributes)
+                : errorCode.getMessage()
+        );
 
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.builder()
-                        .code(errorCode.getCode())
-                        .message(message)
-                        .build());
+
+        return ResponseEntity.badRequest().body(apiResponse);
     }
 
-    // ✅ Xử lý các lỗi không xác định (500)
-    @ExceptionHandler(value = Exception.class)
-    ResponseEntity<ApiResponse<?>> handleUncategorizedException(Exception exception) {
-        log.error("Unexpected error", exception);
+    @ExceptionHandler(value = AppException.class)
+    ResponseEntity<ApiResponse> handlingAppException(AppException exception){
+        ErrorCode errorCode = exception.getErrorCode();
 
-        ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
+        ApiResponse apiResponse = new ApiResponse();
+        apiResponse.setCode(errorCode.getCode());
+        apiResponse.setMessage(errorCode.getMessage());
 
-        return ResponseEntity.status(errorCode.getStatusCode())
+        return ResponseEntity
+                .status(errorCode.getStatusCode())
+                .body(apiResponse);
+    }
+
+    @ExceptionHandler(value = AccessDeniedException.class)
+    ResponseEntity<ApiResponse> handlingAccessDeniedException(AccessDeniedException exception){
+        ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
+
+        return ResponseEntity
+                .status(errorCode.getStatusCode())
                 .body(ApiResponse.builder()
                         .code(errorCode.getCode())
                         .message(errorCode.getMessage())
                         .build());
     }
 
-    // ✅ Hàm hỗ trợ thay thế {min} bằng giá trị cụ thể
-    private String mapAttribute(String message, Map<String, Object> attributes) {
-        String minValue = String.valueOf(attributes.get(MIN_ATTRIBUTE));
+    public String mapAttribute(String message, Map<String, Object> attribute){
+        String minValue = String.valueOf(attribute.get(MIN_ATTRIBUTE));
         return message.replace("{" + MIN_ATTRIBUTE + "}", minValue);
     }
 }
