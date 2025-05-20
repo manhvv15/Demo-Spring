@@ -10,6 +10,7 @@ public enum ErrorCode {
     UNAUTHENTICATED (1006, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     KEY_INVALID (1007, "Invalid message key", HttpStatus.BAD_REQUEST),
     UNAUTHORIZED (1008, "You do not have permission", HttpStatus.FORBIDDEN),
+    UNCATEGORIZED_EXCEPTION(1009, "Hệ thống gặp lỗi không xác định. Vui lòng thử lại sau.", HttpStatus.BAD_REQUEST),
     PRODUCT_NOT_FOUND(2001, "Product not found", HttpStatus.NOT_FOUND),
     PRODUCT_NAME_REQUIRED(2002, "Product name is required", HttpStatus.BAD_REQUEST),
     PRODUCT_DUPLICATED(2003, "Product already exists", HttpStatus.BAD_REQUEST),
